@@ -57,12 +57,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     ...authConfig.callbacks,
     async signIn({ user, account }) {
-      if (account?.provider === "credentials") {
-        const dbUser = await db.user.findUnique({
-          where: { id: user.id },
-        });
-        if (dbUser && !dbUser.emailVerified) return false;
-      }
+      // TODO: Phase 5 — re-enable email verification check once emails are wired up
+      // if (account?.provider === "credentials") {
+      //   const dbUser = await db.user.findUnique({
+      //     where: { id: user.id },
+      //   });
+      //   if (dbUser && !dbUser.emailVerified) return false;
+      // }
       return true;
     },
     async jwt({ token, user }) {
