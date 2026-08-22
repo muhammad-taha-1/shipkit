@@ -6,6 +6,7 @@ import { requireAuth } from "@/modules/auth/guards";
 import { hasPermission } from "./permissions";
 import { inviteMemberSchema } from "@/lib/validations";
 import { INVITATION_EXPIRY_DAYS } from "@/lib/constants";
+import { checkMemberLimit } from "@/modules/billing/limits";
 import { type MemberRole } from "@/generated/prisma/client";
 
 async function requireMemberWithPermission(
@@ -34,6 +35,12 @@ export async function inviteMember(orgId: string, formData: FormData) {
   const parsed = inviteMemberSchema.safeParse(raw);
   if (!parsed.success) {
     return { success: false, error: parsed.error.flatten().fieldErrors };
+  }
+
+  try {
+    await checkMemberLimit(orgId);
+  } catch (e) {
+    return { success: false, error: { email: [(e as Error).message] } };
   }
 
   const existingMember = await db.organizationMember.findFirst({
