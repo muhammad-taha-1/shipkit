@@ -1,12 +1,12 @@
-export default function Home() {
-  return (
-    <div className="flex flex-1 items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight">ShipKit</h1>
-        <p className="mt-2 text-muted-foreground">
-          Production-ready SaaS starter kit
-        </p>
-      </div>
-    </div>
-  );
+import { redirect } from "next/navigation";
+import { auth } from "@/modules/auth/auth";
+
+export default async function RootPage() {
+  const session = await auth();
+
+  if (session) {
+    redirect("/dashboard");
+  }
+
+  redirect("/login");
 }

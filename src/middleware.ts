@@ -30,7 +30,7 @@ export default auth((req) => {
   const isAdminRoute = pathname.startsWith("/admin");
 
   if (isAuthRoute && isLoggedIn) {
-    return Response.redirect(new URL("/", req.url));
+    return Response.redirect(new URL("/dashboard", req.url));
   }
 
   if (!isPublicRoute && !isLoggedIn) {
