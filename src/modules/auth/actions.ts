@@ -37,7 +37,7 @@ export async function registerAction(formData: FormData) {
 
   const existingUser = await db.user.findUnique({ where: { email } });
   if (existingUser) {
-    return { success: false, error: { email: ["Email already in use"] } };
+    return { success: false, error: { email: ["An account with this email already exists. Try signing in instead."] } };
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
@@ -90,6 +90,18 @@ export async function loginAction(formData: FormData) {
     return { success: false, error: "Invalid credentials" };
   }
 
+  const user = await db.user.findUnique({
+    where: { email: parsed.data.email },
+  });
+
+  if (!user) {
+    return { success: false, error: "No account found with this email. Please check for typos or create a new account." };
+  }
+
+  if (!user.passwordHash) {
+    return { success: false, error: "This account uses Google or GitHub sign-in. Please use that method instead." };
+  }
+
   try {
     await signIn("credentials", {
       email: parsed.data.email,
@@ -100,10 +112,10 @@ export async function loginAction(formData: FormData) {
   } catch (error) {
     if (error instanceof AuthError) {
       if (error.type === "CredentialsSignin") {
-        return { success: false, error: "Invalid credentials" };
+        return { success: false, error: "Incorrect password. Please try again or reset your password." };
       }
       if (error.type === "AccessDenied") {
-        return { success: false, error: "Please verify your email first" };
+        return { success: false, error: "Please verify your email before signing in. Check your inbox for the verification link." };
       }
     }
     throw error;
