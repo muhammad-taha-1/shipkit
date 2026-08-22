@@ -8,6 +8,8 @@ import { inviteMemberSchema } from "@/lib/validations";
 import { INVITATION_EXPIRY_DAYS } from "@/lib/constants";
 import { checkMemberLimit } from "@/modules/billing/limits";
 import { type MemberRole } from "@/generated/prisma/client";
+import { sendEmail } from "@/modules/notifications/send";
+import InviteMember from "../../../emails/invite-member";
 
 async function requireMemberWithPermission(
   orgId: string,
@@ -77,7 +79,21 @@ export async function inviteMember(orgId: string, formData: FormData) {
     },
   });
 
-  // TODO: Send invite email via Inngest (Phase 5)
+  const inviter = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+  const org = await db.organization.findUniqueOrThrow({ where: { id: orgId } });
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
+  const acceptUrl = `${appUrl}/accept-invite?token=${token}`;
+
+  await sendEmail({
+    to: parsed.data.email,
+    subject: `You've been invited to join ${org.name} — ShipKit`,
+    react: InviteMember({
+      inviterName: inviter.name ?? inviter.email,
+      orgName: org.name,
+      role: parsed.data.role,
+      acceptUrl,
+    }),
+  });
 
   return { success: true };
 }

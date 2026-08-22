@@ -15,6 +15,10 @@ import {
   EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS,
 } from "@/lib/constants";
 import { AuthError } from "next-auth";
+import { sendEmail } from "@/modules/notifications/send";
+import WelcomeEmail from "../../../emails/welcome";
+import VerifyEmail from "../../../emails/verify-email";
+import ResetPassword from "../../../emails/reset-password";
 
 export async function registerAction(formData: FormData) {
   const raw = {
@@ -57,7 +61,20 @@ export async function registerAction(formData: FormData) {
     },
   });
 
-  // TODO: Send verification email via Inngest (Phase 5)
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
+  const verifyUrl = `${appUrl}/verify-email?token=${token}`;
+
+  await sendEmail({
+    to: email,
+    subject: "Verify your email — ShipKit",
+    react: VerifyEmail({ name: name ?? "there", verifyUrl }),
+  });
+
+  await sendEmail({
+    to: email,
+    subject: "Welcome to ShipKit!",
+    react: WelcomeEmail({ name: name ?? "there" }),
+  });
 
   return { success: true };
 }
@@ -121,7 +138,14 @@ export async function forgotPasswordAction(formData: FormData) {
       },
     });
 
-    // TODO: Send reset email via Inngest (Phase 5)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
+    const resetUrl = `${appUrl}/reset-password?token=${token}`;
+
+    await sendEmail({
+      to: parsed.data.email,
+      subject: "Reset your password — ShipKit",
+      react: ResetPassword({ name: user.name ?? "there", resetUrl }),
+    });
   }
 
   return { success: true, message: "If an account exists, a reset link has been sent." };
