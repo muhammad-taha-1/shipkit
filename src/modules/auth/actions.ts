@@ -87,7 +87,7 @@ export async function loginAction(formData: FormData) {
 
   const parsed = loginSchema.safeParse(raw);
   if (!parsed.success) {
-    return { success: false, error: "Invalid credentials" };
+    return { success: false as const, error: "Invalid credentials" };
   }
 
   const user = await db.user.findUnique({
@@ -95,31 +95,25 @@ export async function loginAction(formData: FormData) {
   });
 
   if (!user) {
-    return { success: false, error: "No account found with this email. Please check for typos or create a new account." };
+    return { success: false as const, error: "No account found with this email. Please check for typos or create a new account." };
   }
 
   if (!user.passwordHash) {
-    return { success: false, error: "This account uses Google or GitHub sign-in. Please use that method instead." };
+    return { success: false as const, error: "This account uses Google or GitHub sign-in. Please use that method instead." };
   }
 
-  try {
-    await signIn("credentials", {
-      email: parsed.data.email,
-      password: parsed.data.password,
-      redirect: false,
-    });
-    return { success: true };
-  } catch (error) {
-    if (error instanceof AuthError) {
-      if (error.type === "CredentialsSignin") {
-        return { success: false, error: "Incorrect password. Please try again or reset your password." };
-      }
-      if (error.type === "AccessDenied") {
-        return { success: false, error: "Please verify your email before signing in. Check your inbox for the verification link." };
-      }
-    }
-    throw error;
+  const isValid = await bcrypt.compare(parsed.data.password, user.passwordHash);
+  if (!isValid) {
+    return { success: false as const, error: "Incorrect password. Please try again or reset your password." };
   }
+
+  await signIn("credentials", {
+    email: parsed.data.email,
+    password: parsed.data.password,
+    redirectTo: "/dashboard",
+  });
+
+  return { success: true as const };
 }
 
 export async function forgotPasswordAction(formData: FormData) {

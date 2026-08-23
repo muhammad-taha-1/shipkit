@@ -4,6 +4,7 @@ import { stripe } from "@/modules/billing/stripe";
 import { db } from "@/lib/db";
 import type Stripe from "stripe";
 import { type PlanType, type SubscriptionStatus } from "@/generated/prisma/client";
+import { createAuditLog } from "@/modules/audit/log";
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -98,6 +99,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       plan: priceId ? mapStripePriceToplan(priceId) : "PRO",
     },
   });
+
+  await createAuditLog({
+    action: "billing.subscription_created",
+    entityType: "subscription",
+    entityId: subscription.id,
+    organizationId: orgId,
+    metadata: { plan: priceId ? mapStripePriceToplan(priceId) : "PRO" },
+  });
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
@@ -112,6 +121,14 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       subscriptionStatus: mapStripeStatus(subscription.status),
       plan: priceId ? mapStripePriceToplan(priceId) : undefined,
     },
+  });
+
+  await createAuditLog({
+    action: "billing.subscription_updated",
+    entityType: "subscription",
+    entityId: subscription.id,
+    organizationId: orgId,
+    metadata: { status: subscription.status },
   });
 }
 

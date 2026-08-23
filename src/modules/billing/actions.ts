@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { stripe } from "./stripe";
 import { requireOrgRole } from "@/modules/auth/guards";
 import { redirect } from "next/navigation";
+import { createAuditLog } from "@/modules/audit/log";
 
 async function getOrCreateStripeCustomer(orgId: string) {
   const org = await db.organization.findUniqueOrThrow({
@@ -37,7 +38,7 @@ async function getOrCreateStripeCustomer(orgId: string) {
 }
 
 export async function createCheckoutSession(orgId: string, priceId: string) {
-  await requireOrgRole(orgId, ["OWNER", "ADMIN"]);
+  const { user } = await requireOrgRole(orgId, ["OWNER", "ADMIN"]);
 
   const customerId = await getOrCreateStripeCustomer(orgId);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
@@ -55,6 +56,13 @@ export async function createCheckoutSession(orgId: string, priceId: string) {
   });
 
   if (session.url) {
+    await createAuditLog({
+      action: "billing.checkout",
+      entityType: "subscription",
+      organizationId: orgId,
+      userId: user.id,
+      metadata: { priceId },
+    });
     redirect(session.url);
   }
 
@@ -83,7 +91,7 @@ export async function createBillingPortalSession(orgId: string) {
 }
 
 export async function cancelSubscription(orgId: string) {
-  await requireOrgRole(orgId, ["OWNER"]);
+  const { user } = await requireOrgRole(orgId, ["OWNER"]);
 
   const org = await db.organization.findUniqueOrThrow({
     where: { id: orgId },
@@ -102,11 +110,18 @@ export async function cancelSubscription(orgId: string) {
     data: { subscriptionStatus: "CANCELED" },
   });
 
+  await createAuditLog({
+    action: "billing.subscription_canceled",
+    entityType: "subscription",
+    organizationId: orgId,
+    userId: user.id,
+  });
+
   return { success: true };
 }
 
 export async function resumeSubscription(orgId: string) {
-  await requireOrgRole(orgId, ["OWNER"]);
+  const { user } = await requireOrgRole(orgId, ["OWNER"]);
 
   const org = await db.organization.findUniqueOrThrow({
     where: { id: orgId },
@@ -123,6 +138,13 @@ export async function resumeSubscription(orgId: string) {
   await db.organization.update({
     where: { id: orgId },
     data: { subscriptionStatus: "ACTIVE" },
+  });
+
+  await createAuditLog({
+    action: "billing.subscription_resumed",
+    entityType: "subscription",
+    organizationId: orgId,
+    userId: user.id,
   });
 
   return { success: true };

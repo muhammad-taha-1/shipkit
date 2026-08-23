@@ -5,6 +5,7 @@ import { requireAuth } from "@/modules/auth/guards";
 import { createOrgSchema } from "@/lib/validations";
 import { generateSlug } from "@/lib/utils";
 import { cookies } from "next/headers";
+import { createAuditLog } from "@/modules/audit/log";
 
 export async function createOrganization(formData: FormData) {
   const user = await requireAuth();
@@ -42,6 +43,14 @@ export async function createOrganization(formData: FormData) {
   const cookieStore = await cookies();
   cookieStore.set("active-org-id", org.id, { path: "/", httpOnly: true, sameSite: "lax" });
 
+  await createAuditLog({
+    action: "org.created",
+    entityType: "organization",
+    entityId: org.id,
+    organizationId: org.id,
+    userId: user.id,
+  });
+
   return { success: true, orgId: org.id };
 }
 
@@ -75,6 +84,15 @@ export async function updateOrganization(orgId: string, formData: FormData) {
     },
   });
 
+  await createAuditLog({
+    action: "org.updated",
+    entityType: "organization",
+    entityId: orgId,
+    organizationId: orgId,
+    userId: user.id,
+    metadata: { name, slug },
+  });
+
   return { success: true };
 }
 
@@ -87,6 +105,14 @@ export async function deleteOrganization(orgId: string) {
   if (!member || member.role !== "OWNER") {
     return { success: false, error: "Only the owner can delete an organization" };
   }
+
+  await createAuditLog({
+    action: "org.deleted",
+    entityType: "organization",
+    entityId: orgId,
+    organizationId: orgId,
+    userId: user.id,
+  });
 
   await db.organization.delete({ where: { id: orgId } });
 

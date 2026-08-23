@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireAuth } from "@/modules/auth/guards";
-import { getCurrentOrgId } from "@/hooks/use-current-org";
+import { getActiveOrgId } from "@/hooks/use-current-org";
 import {
   getOrganizationMembers,
   getOrganizationInvitations,
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default async function MembersPage() {
   const user = await requireAuth();
-  const orgId = await getCurrentOrgId();
+  const orgId = await getActiveOrgId(user.id);
 
   if (!orgId) return <p>No organization selected.</p>;
 

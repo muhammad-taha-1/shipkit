@@ -1,5 +1,5 @@
 import { requireAuth } from "@/modules/auth/guards";
-import { getCurrentOrgId } from "@/hooks/use-current-org";
+import { getActiveOrgId } from "@/hooks/use-current-org";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { BillingContent } from "./billing-content";
@@ -7,7 +7,7 @@ import { plans } from "@/modules/billing/plans";
 
 export default async function BillingPage() {
   const user = await requireAuth();
-  const orgId = await getCurrentOrgId();
+  const orgId = await getActiveOrgId(user.id);
   if (!orgId) redirect("/onboarding");
 
   const org = await db.organization.findUniqueOrThrow({

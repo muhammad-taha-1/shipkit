@@ -13,7 +13,7 @@ export default async function OnboardingPage() {
   const memberships = await getUserOrganizations(user.id);
 
   if (memberships.length > 0) {
-    redirect("/");
+    redirect("/dashboard");
   }
 
   return <OrgCreateForm />;

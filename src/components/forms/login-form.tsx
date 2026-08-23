@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { loginAction } from "@/modules/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Card,
   CardContent,
@@ -20,24 +21,25 @@ import { Loader2 } from "lucide-react";
 
 export function LoginForm() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
 
-  async function handleSubmit(
-    _prevState: unknown,
-    formData: FormData,
-  ) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setIsPending(true);
+
+    const formData = new FormData(e.currentTarget);
+
     const result = await loginAction(formData);
-    if (result.success) {
-      toast.success("Logged in successfully");
-      router.push("/");
-      router.refresh();
-      return { error: null };
+    if (result && !result.success) {
+      setError(result.error ?? "Login failed");
+      setPassword("");
+      setIsPending(false);
     }
-    return { error: result.error };
   }
-
-  const [state, action, isPending] = useActionState(handleSubmit, {
-    error: null as string | null,
-  });
 
   return (
     <Card>
@@ -46,7 +48,7 @@ export function LoginForm() {
         <CardDescription>Sign in to your account</CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={action} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -56,6 +58,8 @@ export function LoginForm() {
               placeholder="you@example.com"
               required
               autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -68,16 +72,17 @@ export function LoginForm() {
                 Forgot password?
               </Link>
             </div>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               required
               autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          {state.error && (
-            <p className="text-sm text-destructive">{state.error}</p>
+          {error && (
+            <p className="text-sm text-destructive">{error}</p>
           )}
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -10,6 +10,7 @@ import { checkMemberLimit } from "@/modules/billing/limits";
 import { type MemberRole } from "@/generated/prisma/client";
 import { sendEmail } from "@/modules/notifications/send";
 import InviteMember from "../../../emails/invite-member";
+import { createAuditLog } from "@/modules/audit/log";
 
 async function requireMemberWithPermission(
   orgId: string,
@@ -95,6 +96,14 @@ export async function inviteMember(orgId: string, formData: FormData) {
     }),
   });
 
+  await createAuditLog({
+    action: "member.invited",
+    entityType: "invitation",
+    organizationId: orgId,
+    userId: user.id,
+    metadata: { email: parsed.data.email, role: parsed.data.role },
+  });
+
   return { success: true };
 }
 
@@ -128,6 +137,14 @@ export async function acceptInvitation(token: string) {
     }),
   ]);
 
+  await createAuditLog({
+    action: "member.joined",
+    entityType: "member",
+    organizationId: invitation.organizationId,
+    userId: user.id,
+    metadata: { role: invitation.role },
+  });
+
   return { success: true, orgId: invitation.organizationId };
 }
 
@@ -153,6 +170,14 @@ export async function removeMember(orgId: string, targetUserId: string) {
 
   await db.organizationMember.delete({
     where: { userId_organizationId: { userId: targetUserId, organizationId: orgId } },
+  });
+
+  await createAuditLog({
+    action: "member.removed",
+    entityType: "member",
+    entityId: targetUserId,
+    organizationId: orgId,
+    userId: user.id,
   });
 
   return { success: true };
@@ -183,6 +208,15 @@ export async function changeRole(orgId: string, targetUserId: string, newRole: M
     data: { role: newRole },
   });
 
+  await createAuditLog({
+    action: "member.role_changed",
+    entityType: "member",
+    entityId: targetUserId,
+    organizationId: orgId,
+    userId: user.id,
+    metadata: { newRole, previousRole: targetMember.role },
+  });
+
   return { success: true };
 }
 
@@ -193,6 +227,14 @@ export async function revokeInvitation(invitationId: string, orgId: string) {
   await db.invitation.update({
     where: { id: invitationId, organizationId: orgId },
     data: { status: "REVOKED" },
+  });
+
+  await createAuditLog({
+    action: "invitation.revoked",
+    entityType: "invitation",
+    entityId: invitationId,
+    organizationId: orgId,
+    userId: user.id,
   });
 
   return { success: true };

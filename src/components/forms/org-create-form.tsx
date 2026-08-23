@@ -33,7 +33,7 @@ export function OrgCreateForm() {
     const result = await createOrganization(formData);
     if (result.success) {
       toast.success("Workspace created!");
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
       return { errors: null };
     }

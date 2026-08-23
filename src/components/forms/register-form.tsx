@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { registerAction } from "@/modules/auth/actions";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { PasswordInput } from "@/components/ui/password-input";
 
 type State = {
   errors: Record<string, string[]> | null;
@@ -23,27 +24,28 @@ type State = {
 };
 
 export function RegisterForm() {
-  async function handleSubmit(
-    _prevState: State,
-    formData: FormData,
-  ): Promise<State> {
+  const [errors, setErrors] = useState<Record<string, string[]> | null>(null);
+  const [registered, setRegistered] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setErrors(null);
+    setIsPending(true);
+
+    const formData = new FormData(e.currentTarget);
     const result = await registerAction(formData);
+
     if (result.success) {
       toast.success("Account created! Check your email to verify.");
-      return { errors: null, registered: true };
+      setRegistered(true);
+    } else {
+      setErrors(result.error as Record<string, string[]>);
     }
-    return {
-      errors: result.error as Record<string, string[]>,
-      registered: false,
-    };
+    setIsPending(false);
   }
 
-  const [state, action, isPending] = useActionState(handleSubmit, {
-    errors: null,
-    registered: false,
-  });
-
-  if (state.registered) {
+  if (registered) {
     return (
       <Card>
         <CardHeader className="text-center">
@@ -69,12 +71,12 @@ export function RegisterForm() {
         <CardDescription>Get started with ShipKit</CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={action} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input id="name" name="name" placeholder="Your name" required />
-            {state.errors?.name && (
-              <p className="text-sm text-destructive">{state.errors.name[0]}</p>
+            {errors?.name && (
+              <p className="text-sm text-destructive">{errors.name[0]}</p>
             )}
           </div>
           <div className="space-y-2">
@@ -87,37 +89,35 @@ export function RegisterForm() {
               required
               autoComplete="email"
             />
-            {state.errors?.email && (
-              <p className="text-sm text-destructive">{state.errors.email[0]}</p>
+            {errors?.email && (
+              <p className="text-sm text-destructive">{errors.email[0]}</p>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               required
               autoComplete="new-password"
             />
-            {state.errors?.password && (
+            {errors?.password && (
               <p className="text-sm text-destructive">
-                {state.errors.password[0]}
+                {errors.password[0]}
               </p>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm password</Label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
               name="confirmPassword"
-              type="password"
               required
               autoComplete="new-password"
             />
-            {state.errors?.confirmPassword && (
+            {errors?.confirmPassword && (
               <p className="text-sm text-destructive">
-                {state.errors.confirmPassword[0]}
+                {errors.confirmPassword[0]}
               </p>
             )}
           </div>
