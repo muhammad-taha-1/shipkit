@@ -119,6 +119,9 @@ export async function loginAction(formData: FormData) {
       redirectTo: "/dashboard",
     });
   } catch (error) {
+    if (error instanceof Error && error.message === "EMAIL_NOT_VERIFIED") {
+      return { success: false as const, error: "Please verify your email before signing in. Check your inbox for the verification link." };
+    }
     if (error instanceof CredentialsSignin || error instanceof AuthError) {
       return { success: false as const, error: "Incorrect password. Please try again or reset your password." };
     }

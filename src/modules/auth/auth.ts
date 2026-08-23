@@ -60,7 +60,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const dbUser = await db.user.findUnique({
             where: { id: user.id },
           });
-          if (dbUser && !dbUser.emailVerified) return false;
+          if (dbUser && !dbUser.emailVerified) {
+            throw new Error("EMAIL_NOT_VERIFIED");
+          }
         }
       }
       return true;
