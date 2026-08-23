@@ -13,7 +13,6 @@ declare module "next-auth" {
       email: string;
       image: string | null;
       role: GlobalRole;
-      activeOrgId: string | null;
     };
   }
 }
@@ -22,6 +21,5 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     role: GlobalRole;
-    activeOrgId: string | null;
   }
 }

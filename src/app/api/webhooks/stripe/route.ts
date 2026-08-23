@@ -89,6 +89,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     session.subscription as string,
   );
   const priceId = subscription.items.data[0]?.price.id;
+  const plan = priceId ? mapStripePriceToplan(priceId) : "PRO";
 
   await db.organization.update({
     where: { id: orgId },
@@ -96,7 +97,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       stripeCustomerId: session.customer as string,
       subscriptionId: subscription.id,
       subscriptionStatus: mapStripeStatus(subscription.status),
-      plan: priceId ? mapStripePriceToplan(priceId) : "PRO",
+      plan,
     },
   });
 
@@ -105,7 +106,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     entityType: "subscription",
     entityId: subscription.id,
     organizationId: orgId,
-    metadata: { plan: priceId ? mapStripePriceToplan(priceId) : "PRO" },
+    userId: session.metadata?.userId ?? undefined,
+    metadata: { plan },
   });
 }
 
@@ -144,6 +146,14 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       subscriptionId: null,
     },
   });
+
+  await createAuditLog({
+    action: "billing.subscription_deleted",
+    entityType: "subscription",
+    entityId: subscription.id,
+    organizationId: orgId,
+    metadata: { previousPlan: subscription.items.data[0]?.price.id ?? null },
+  });
 }
 
 function getSubscriptionIdFromInvoice(invoice: Stripe.Invoice): string | null {
@@ -180,6 +190,4 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     where: { id: org.id },
     data: { subscriptionStatus: "PAST_DUE" },
   });
-
-  // TODO: Phase 5 — send payment failed email to org OWNER
 }

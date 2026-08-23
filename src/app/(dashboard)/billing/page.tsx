@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { requireAuth } from "@/modules/auth/guards";
 import { getActiveOrgId } from "@/hooks/use-current-org";
 import { db } from "@/lib/db";
@@ -34,18 +35,20 @@ export default async function BillingPage() {
         </p>
       </div>
 
-      <BillingContent
-        orgId={orgId}
-        currentPlan={org.plan}
-        planName={currentPlan.name}
-        subscriptionStatus={org.subscriptionStatus}
-        memberCount={org._count.members}
-        memberLimit={currentPlan.limits.maxMembers}
-        apiKeyCount={org._count.apiKeys}
-        apiKeyLimit={currentPlan.limits.maxApiKeys}
-        canManageBilling={canManageBilling}
-        hasStripeCustomer={!!org.stripeCustomerId}
-      />
+      <Suspense>
+        <BillingContent
+          orgId={orgId}
+          currentPlan={org.plan}
+          planName={currentPlan.name}
+          subscriptionStatus={org.subscriptionStatus}
+          memberCount={org._count.members}
+          memberLimit={currentPlan.limits.maxMembers}
+          apiKeyCount={org._count.apiKeys}
+          apiKeyLimit={currentPlan.limits.maxApiKeys}
+          canManageBilling={canManageBilling}
+          hasStripeCustomer={!!org.stripeCustomerId}
+        />
+      </Suspense>
     </div>
   );
 }

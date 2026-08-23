@@ -14,16 +14,23 @@ import {
   PASSWORD_RESET_TOKEN_EXPIRY_HOURS,
   EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS,
 } from "@/lib/constants";
-import { AuthError } from "next-auth";
+import { AuthError, CredentialsSignin } from "next-auth";
 import { sendEmail } from "@/modules/notifications/send";
+import { rateLimit } from "@/lib/rate-limit";
 import WelcomeEmail from "../../../emails/welcome";
 import VerifyEmail from "../../../emails/verify-email";
 import ResetPassword from "../../../emails/reset-password";
 
 export async function registerAction(formData: FormData) {
+  const rawEmail = formData.get("email") as string;
+  const rl = await rateLimit(`register:${rawEmail}`, { maxAttempts: 3, windowMs: 60_000 });
+  if (!rl.success) {
+    return { success: false, error: { email: ["Too many attempts. Please try again in a minute."] } };
+  }
+
   const raw = {
     name: formData.get("name") as string,
-    email: formData.get("email") as string,
+    email: rawEmail,
     password: formData.get("password") as string,
     confirmPassword: formData.get("confirmPassword") as string,
   };
@@ -80,10 +87,13 @@ export async function registerAction(formData: FormData) {
 }
 
 export async function loginAction(formData: FormData) {
-  const raw = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
+  const email = formData.get("email") as string;
+  const rl = await rateLimit(`login:${email}`, { maxAttempts: 5, windowMs: 60_000 });
+  if (!rl.success) {
+    return { success: false as const, error: "Too many login attempts. Please try again in a minute." };
+  }
+
+  const raw = { email, password: formData.get("password") as string };
 
   const parsed = loginSchema.safeParse(raw);
   if (!parsed.success) {
@@ -102,16 +112,18 @@ export async function loginAction(formData: FormData) {
     return { success: false as const, error: "This account uses Google or GitHub sign-in. Please use that method instead." };
   }
 
-  const isValid = await bcrypt.compare(parsed.data.password, user.passwordHash);
-  if (!isValid) {
-    return { success: false as const, error: "Incorrect password. Please try again or reset your password." };
+  try {
+    await signIn("credentials", {
+      email: parsed.data.email,
+      password: parsed.data.password,
+      redirectTo: "/dashboard",
+    });
+  } catch (error) {
+    if (error instanceof CredentialsSignin || error instanceof AuthError) {
+      return { success: false as const, error: "Incorrect password. Please try again or reset your password." };
+    }
+    throw error;
   }
-
-  await signIn("credentials", {
-    email: parsed.data.email,
-    password: parsed.data.password,
-    redirectTo: "/dashboard",
-  });
 
   return { success: true as const };
 }
@@ -122,6 +134,11 @@ export async function forgotPasswordAction(formData: FormData) {
   const parsed = forgotPasswordSchema.safeParse(raw);
   if (!parsed.success) {
     return { success: false, error: "Invalid email" };
+  }
+
+  const rl = await rateLimit(`forgot:${parsed.data.email}`, { maxAttempts: 2, windowMs: 60_000 });
+  if (!rl.success) {
+    return { success: true, message: "If an account exists, a reset link has been sent." };
   }
 
   const user = await db.user.findUnique({

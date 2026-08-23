@@ -12,6 +12,7 @@ const publicRoutes = [
   "/forgot-password",
   "/reset-password",
   "/verify-email",
+  "/accept-invite",
 ];
 
 const authRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];

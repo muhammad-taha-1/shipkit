@@ -31,7 +31,10 @@ const rolePermissions: Record<MemberRole, Permission[]> = {
     "apiKeys:delete",
     "auditLog:view",
   ],
-  MEMBER: [],
+  MEMBER: [
+    "apiKeys:create",
+    "auditLog:view",
+  ],
 };
 
 export function hasPermission(role: MemberRole, permission: Permission): boolean {

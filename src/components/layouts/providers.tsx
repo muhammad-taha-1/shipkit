@@ -32,9 +32,14 @@ function getSystemTheme(): "light" | "dark" {
     : "light";
 }
 
+function getInitialResolved(): "light" | "dark" {
+  if (typeof document === "undefined") return "light";
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">(getInitialResolved);
 
   const applyTheme = useCallback((t: Theme) => {
     const resolved = t === "system" ? getSystemTheme() : t;

@@ -6,6 +6,7 @@ import { createOrgSchema } from "@/lib/validations";
 import { generateSlug } from "@/lib/utils";
 import { cookies } from "next/headers";
 import { createAuditLog } from "@/modules/audit/log";
+import { hasPermission } from "@/modules/members/permissions";
 
 export async function createOrganization(formData: FormData) {
   const user = await requireAuth();
@@ -60,7 +61,7 @@ export async function updateOrganization(orgId: string, formData: FormData) {
   const member = await db.organizationMember.findUnique({
     where: { userId_organizationId: { userId: user.id, organizationId: orgId } },
   });
-  if (!member || !["OWNER", "ADMIN"].includes(member.role)) {
+  if (!member || !hasPermission(member.role, "org:update")) {
     return { success: false, error: "Insufficient permissions" };
   }
 
@@ -106,15 +107,20 @@ export async function deleteOrganization(orgId: string) {
     return { success: false, error: "Only the owner can delete an organization" };
   }
 
+  const org = await db.organization.findUniqueOrThrow({
+    where: { id: orgId },
+    select: { name: true, slug: true },
+  });
+
+  await db.organization.delete({ where: { id: orgId } });
+
   await createAuditLog({
     action: "org.deleted",
     entityType: "organization",
     entityId: orgId,
-    organizationId: orgId,
     userId: user.id,
+    metadata: { orgName: org.name, orgSlug: org.slug },
   });
-
-  await db.organization.delete({ where: { id: orgId } });
 
   const cookieStore = await cookies();
   cookieStore.delete("active-org-id");

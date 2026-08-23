@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { requireAuth } from "@/modules/auth/guards";
 import { getActiveOrgId } from "@/hooks/use-current-org";
@@ -35,12 +36,14 @@ export default async function ActivityPage({
         </p>
       </div>
 
-      <ActivityLog
-        items={items}
-        actions={actionList}
-        currentAction={params.action ?? null}
-        nextCursor={nextCursor}
-      />
+      <Suspense>
+        <ActivityLog
+          items={items}
+          actions={actionList}
+          currentAction={params.action ?? null}
+          nextCursor={nextCursor}
+        />
+      </Suspense>
     </div>
   );
 }

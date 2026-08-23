@@ -46,36 +46,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
-      allowDangerousEmailAccountLinking: true,
     }),
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
       clientSecret: process.env.AUTH_GITHUB_SECRET,
-      allowDangerousEmailAccountLinking: true,
     }),
   ],
   callbacks: {
     ...authConfig.callbacks,
     async signIn({ user, account }) {
-      // TODO: Phase 5 — re-enable email verification check once emails are wired up
-      // if (account?.provider === "credentials") {
-      //   const dbUser = await db.user.findUnique({
-      //     where: { id: user.id },
-      //   });
-      //   if (dbUser && !dbUser.emailVerified) return false;
-      // }
+      if (account?.provider === "credentials") {
+        if (process.env.SKIP_EMAIL_VERIFICATION !== "true") {
+          const dbUser = await db.user.findUnique({
+            where: { id: user.id },
+          });
+          if (dbUser && !dbUser.emailVerified) return false;
+        }
+      }
       return true;
     },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id!;
         token.role = user.role;
-
-        const membership = await db.organizationMember.findFirst({
-          where: { userId: user.id },
-          orderBy: { createdAt: "desc" },
-        });
-        token.activeOrgId = membership?.organizationId ?? null;
       }
       return token;
     },

@@ -15,6 +15,7 @@ export type AuditAction =
   | "billing.subscription_updated"
   | "billing.subscription_canceled"
   | "billing.subscription_resumed"
+  | "billing.subscription_deleted"
   | "apikey.created"
   | "apikey.revoked";
 
@@ -32,7 +33,7 @@ export async function createAuditLog({
   entityType: string;
   entityId?: string;
   metadata?: Record<string, string | number | boolean | null>;
-  organizationId: string;
+  organizationId?: string | null;
   userId?: string;
   ipAddress?: string | null;
   userAgent?: string | null;
@@ -43,7 +44,7 @@ export async function createAuditLog({
       entityType,
       entityId,
       metadata: metadata ?? undefined,
-      organizationId,
+      organizationId: organizationId ?? null,
       userId,
       ipAddress: ipAddress ?? null,
       userAgent: userAgent ?? null,

@@ -224,8 +224,20 @@ export async function revokeInvitation(invitationId: string, orgId: string) {
   const user = await requireAuth();
   await requireMemberWithPermission(orgId, user.id, "members:invite");
 
-  await db.invitation.update({
+  const invitation = await db.invitation.findUnique({
     where: { id: invitationId, organizationId: orgId },
+  });
+
+  if (!invitation) {
+    return { success: false, error: "Invitation not found" };
+  }
+
+  if (invitation.status !== "PENDING") {
+    return { success: false, error: `Cannot revoke an invitation that is ${invitation.status.toLowerCase()}` };
+  }
+
+  await db.invitation.update({
+    where: { id: invitationId },
     data: { status: "REVOKED" },
   });
 
