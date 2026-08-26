@@ -17,7 +17,9 @@ export type AuditAction =
   | "billing.subscription_resumed"
   | "billing.subscription_deleted"
   | "apikey.created"
-  | "apikey.revoked";
+  | "apikey.revoked"
+  | "user.profile_updated"
+  | "user.password_changed";
 
 export async function createAuditLog({
   action,
