@@ -12,12 +12,14 @@ import {
   Activity,
   Key,
   User,
+  FileText,
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/activity", label: "Activity", icon: Activity },
+  { href: "/files", label: "Files", icon: FileText },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/settings/profile", label: "Profile", icon: User },
   { href: "/settings/members", label: "Members", icon: Users },
@@ -28,6 +30,7 @@ type Org = {
   id: string;
   name: string;
   slug: string;
+  logo: string | null;
 };
 
 export function Sidebar({

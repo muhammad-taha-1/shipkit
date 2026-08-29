@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +17,7 @@ import { ThemeToggle } from "./theme-toggle";
 export function Header({
   user,
 }: {
-  user: { name: string | null; email: string };
+  user: { name: string | null; email: string; image: string | null };
 }) {
   const router = useRouter();
   const initials = user.name
@@ -40,6 +40,7 @@ export function Header({
             render={<Button variant="ghost" size="icon" className="rounded-full" />}
           >
             <Avatar className="h-8 w-8">
+              {user.image && <AvatarImage src={user.image} alt={user.name ?? "Avatar"} />}
               <AvatarFallback className="text-xs">{initials}</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>

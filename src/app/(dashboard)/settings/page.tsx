@@ -19,7 +19,7 @@ export default async function SettingsPage() {
   const [org, member] = await Promise.all([
     db.organization.findUniqueOrThrow({
       where: { id: orgId },
-      select: { id: true, name: true, slug: true },
+      select: { id: true, name: true, slug: true, logo: true },
     }),
     db.organizationMember.findUnique({
       where: { userId_organizationId: { userId: user.id, organizationId: orgId } },

@@ -70,7 +70,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id!;
-        token.role = user.role;
+        token.role = user.role as string;
+      }
+      const dbUser = await db.user.findUnique({
+        where: { id: token.id as string },
+        select: { image: true, role: true },
+      });
+      if (dbUser) {
+        token.image = dbUser.image;
+        token.role = dbUser.role;
       }
       return token;
     },

@@ -12,11 +12,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronsUpDown, Plus, Check } from "lucide-react";
+import Image from "next/image";
 
 type Org = {
   id: string;
   name: string;
   slug: string;
+  logo: string | null;
 };
 
 export function OrgSwitcher({
@@ -41,7 +43,16 @@ export function OrgSwitcher({
       <DropdownMenuTrigger
         render={<Button variant="ghost" className="w-full justify-between px-3" />}
       >
-        <span className="truncate font-semibold">{activeOrg?.name ?? "Select workspace"}</span>
+        <span className="flex items-center gap-2 truncate">
+          {activeOrg?.logo ? (
+            <Image src={activeOrg.logo} alt="" width={20} height={20} className="shrink-0 rounded" />
+          ) : (
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-muted text-[10px] font-bold">
+              {activeOrg?.name[0]?.toUpperCase()}
+            </span>
+          )}
+          <span className="truncate font-semibold">{activeOrg?.name ?? "Select workspace"}</span>
+        </span>
         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="start">
@@ -51,7 +62,16 @@ export function OrgSwitcher({
             onClick={() => handleSwitch(org.id)}
             className="flex items-center justify-between"
           >
-            <span className="truncate">{org.name}</span>
+            <span className="flex items-center gap-2 truncate">
+              {org.logo ? (
+                <Image src={org.logo} alt="" width={16} height={16} className="shrink-0 rounded" />
+              ) : (
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded bg-muted text-[8px] font-bold">
+                  {org.name[0]?.toUpperCase()}
+                </span>
+              )}
+              <span className="truncate">{org.name}</span>
+            </span>
             {org.id === activeOrgId && <Check className="h-4 w-4" />}
           </DropdownMenuItem>
         ))}

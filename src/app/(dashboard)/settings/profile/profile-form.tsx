@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { AvatarUpload } from "@/components/uploads/avatar-upload";
 
 type State = {
   errors: Record<string, string[]> | null;
@@ -24,7 +25,7 @@ type State = {
 export function ProfileForm({
   user,
 }: {
-  user: { name: string; email: string };
+  user: { name: string; email: string; image: string | null };
 }) {
   const router = useRouter();
 
@@ -55,6 +56,13 @@ export function ProfileForm({
       </CardHeader>
       <form action={action}>
         <CardContent className="space-y-4">
+          <div className="flex justify-center pb-2">
+            <AvatarUpload
+              currentImage={user.image}
+              userName={user.name}
+              userEmail={user.email}
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="profile-name">Name</Label>
             <Input

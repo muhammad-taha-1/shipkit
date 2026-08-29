@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { OrgLogoUpload } from "@/components/uploads/org-logo-upload";
 
 type State = {
   error: string | null;
@@ -25,7 +26,7 @@ export function OrgSettingsForm({
   org,
   canUpdate,
 }: {
-  org: { id: string; name: string; slug: string };
+  org: { id: string; name: string; slug: string; logo: string | null };
   canUpdate: boolean;
 }) {
   const router = useRouter();
@@ -59,6 +60,15 @@ export function OrgSettingsForm({
       </CardHeader>
       <form action={action}>
         <CardContent className="space-y-4">
+          {canUpdate && (
+            <div className="flex justify-center pb-2">
+              <OrgLogoUpload
+                currentLogo={org.logo}
+                orgName={org.name}
+                orgId={org.id}
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="org-name">Name</Label>
             <Input

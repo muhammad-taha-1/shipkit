@@ -9,6 +9,7 @@ export type PlanDefinition = {
   limits: {
     maxMembers: number;
     maxApiKeys: number;
+    maxStorageBytes: number;
   };
 };
 
@@ -22,11 +23,13 @@ export const plans: Record<PlanType, PlanDefinition> = {
       "1 organization",
       "Up to 3 team members",
       "Basic analytics",
+      "100 MB file storage",
       "Community support",
     ],
     limits: {
       maxMembers: 3,
       maxApiKeys: 1,
+      maxStorageBytes: 100 * 1024 * 1024,
     },
   },
   PRO: {
@@ -40,11 +43,13 @@ export const plans: Record<PlanType, PlanDefinition> = {
       "Advanced analytics",
       "Priority support",
       "Custom branding",
+      "5 GB file storage",
       "API access",
     ],
     limits: {
       maxMembers: 20,
       maxApiKeys: 10,
+      maxStorageBytes: 5 * 1024 * 1024 * 1024,
     },
   },
   ENTERPRISE: {
@@ -59,11 +64,13 @@ export const plans: Record<PlanType, PlanDefinition> = {
       "Audit logs",
       "Dedicated support",
       "SLA guarantee",
+      "50 GB file storage",
       "Unlimited API keys",
     ],
     limits: {
       maxMembers: Infinity,
       maxApiKeys: Infinity,
+      maxStorageBytes: 50 * 1024 * 1024 * 1024,
     },
   },
 };

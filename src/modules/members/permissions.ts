@@ -9,7 +9,9 @@ export type Permission =
   | "billing:manage"
   | "apiKeys:create"
   | "apiKeys:delete"
-  | "auditLog:view";
+  | "auditLog:view"
+  | "files:upload"
+  | "files:delete";
 
 const rolePermissions: Record<MemberRole, Permission[]> = {
   OWNER: [
@@ -22,6 +24,8 @@ const rolePermissions: Record<MemberRole, Permission[]> = {
     "apiKeys:create",
     "apiKeys:delete",
     "auditLog:view",
+    "files:upload",
+    "files:delete",
   ],
   ADMIN: [
     "org:update",
@@ -30,10 +34,13 @@ const rolePermissions: Record<MemberRole, Permission[]> = {
     "apiKeys:create",
     "apiKeys:delete",
     "auditLog:view",
+    "files:upload",
+    "files:delete",
   ],
   MEMBER: [
     "apiKeys:create",
     "auditLog:view",
+    "files:upload",
   ],
 };
 

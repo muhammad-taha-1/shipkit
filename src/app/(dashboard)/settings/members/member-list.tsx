@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { removeMember, changeRole, revokeInvitation } from "@/modules/members/actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -103,6 +103,9 @@ export function MemberList({
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
+                      {member.user.image && (
+                        <AvatarImage src={member.user.image} alt={member.user.name ?? "Avatar"} />
+                      )}
                       <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                     </Avatar>
                     <div>

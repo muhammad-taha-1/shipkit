@@ -40,7 +40,11 @@ export default async function ProfilePage() {
       </div>
 
       <ProfileForm
-        user={{ name: dbUser.name ?? "", email: dbUser.email }}
+        user={{
+          name: dbUser.name ?? "",
+          email: dbUser.email,
+          image: dbUser.image,
+        }}
       />
 
       {hasPassword && <ChangePasswordForm />}

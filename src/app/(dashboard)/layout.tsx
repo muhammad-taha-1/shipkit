@@ -21,6 +21,7 @@ export default async function DashboardLayout({
     id: m.organization.id,
     name: m.organization.name,
     slug: m.organization.slug,
+    logo: m.organization.logo,
   }));
 
   const activeOrgId = (await getActiveOrgId(user.id)) ?? orgs[0].id;
@@ -29,7 +30,7 @@ export default async function DashboardLayout({
     <div className="flex h-screen">
       <Sidebar orgs={orgs} activeOrgId={activeOrgId} />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header user={{ name: user.name, email: user.email }} />
+        <Header user={{ name: user.name, email: user.email, image: user.image }} />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>

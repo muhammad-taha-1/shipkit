@@ -81,3 +81,7 @@ export const createApiKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
   expiresIn: z.enum(["never", "30d", "60d", "90d", "1y"]).optional(),
 });
+
+export const deleteFileSchema = z.object({
+  fileId: z.string().min(1, "File ID is required"),
+});

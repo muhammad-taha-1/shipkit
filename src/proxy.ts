@@ -25,6 +25,7 @@ export default auth((req) => {
     (route) =>
       pathname === route ||
       pathname.startsWith("/api/webhooks") ||
+      pathname.startsWith("/api/uploadthing") ||
       pathname.startsWith("/api/health"),
   );
   const isAuthRoute = authRoutes.some((route) => pathname === route);

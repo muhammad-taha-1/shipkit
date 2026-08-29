@@ -28,6 +28,7 @@ model User {
   invitationsSent Invitation[] @relation("InvitedBy")
   auditLogs       AuditLog[]
   apiKeys         ApiKey[]
+  files           File[]
 
   @@map("users")
 }
@@ -103,6 +104,7 @@ model Organization {
   invitations     Invitation[]
   auditLogs       AuditLog[]
   apiKeys         ApiKey[]
+  files           File[]
 
   @@index([slug])
   @@map("organizations")
@@ -238,4 +240,37 @@ enum InvitationStatus {
   ACCEPTED
   EXPIRED
   REVOKED
+}
+
+enum FileCategory {
+  AVATAR
+  ORG_LOGO
+  DOCUMENT
+  IMAGE
+}
+
+// ==========================================
+// FILE UPLOADS
+// ==========================================
+
+model File {
+  id             String       @id @default(cuid())
+  name           String
+  key            String       @unique
+  url            String
+  size           Int
+  type           String
+  category       FileCategory @default(DOCUMENT)
+  organizationId String?
+  userId         String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([category])
+  @@map("files")
 }

@@ -19,7 +19,11 @@ export type AuditAction =
   | "apikey.created"
   | "apikey.revoked"
   | "user.profile_updated"
-  | "user.password_changed";
+  | "user.password_changed"
+  | "user.avatar_updated"
+  | "org.logo_updated"
+  | "file.uploaded"
+  | "file.deleted";
 
 export async function createAuditLog({
   action,
