@@ -29,6 +29,9 @@ model User {
   auditLogs       AuditLog[]
   apiKeys         ApiKey[]
   files           File[]
+  notificationsReceived Notification[] @relation("NotificationRecipient")
+  notificationsSent     Notification[] @relation("NotificationActor")
+  notificationPrefs     NotificationPreference[]
 
   @@map("users")
 }
@@ -105,6 +108,7 @@ model Organization {
   auditLogs       AuditLog[]
   apiKeys         ApiKey[]
   files           File[]
+  notifications   Notification[]
 
   @@index([slug])
   @@map("organizations")
@@ -273,4 +277,59 @@ model File {
   @@index([userId])
   @@index([category])
   @@map("files")
+}
+
+// ==========================================
+// NOTIFICATIONS
+// ==========================================
+
+enum NotificationType {
+  MEMBER_INVITED
+  MEMBER_JOINED
+  MEMBER_REMOVED
+  MEMBER_ROLE_CHANGED
+  INVITATION_REVOKED
+  BILLING_SUBSCRIPTION_CREATED
+  BILLING_SUBSCRIPTION_UPDATED
+  BILLING_SUBSCRIPTION_CANCELED
+  BILLING_SUBSCRIPTION_RESUMED
+  BILLING_SUBSCRIPTION_DELETED
+  INVOICE_PAYMENT_FAILED
+}
+
+model Notification {
+  id             String           @id @default(cuid())
+  type           NotificationType
+  title          String
+  body           String
+  link           String?
+  read           Boolean          @default(false)
+  readAt         DateTime?
+  actorId        String?
+  recipientId    String
+  organizationId String?
+  createdAt      DateTime         @default(now())
+
+  actor          User?            @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  recipient      User             @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  organization   Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, read, createdAt])
+  @@index([recipientId, createdAt])
+  @@index([organizationId])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  inApp     Boolean          @default(true)
+  email     Boolean          @default(true)
+  updatedAt DateTime         @updatedAt
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@map("notification_preferences")
 }

@@ -13,11 +13,38 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, Settings, User } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
+import { NotificationBell } from "@/components/notifications/notification-popover";
+import { type NotificationType } from "@/generated/prisma/client";
+
+type NotificationItem = {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  link: string | null;
+  read: boolean;
+  createdAt: Date;
+  actor: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  } | null;
+  organization: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+};
 
 export function Header({
   user,
+  notifications,
+  unreadCount,
 }: {
   user: { name: string | null; email: string; image: string | null };
+  notifications: NotificationItem[];
+  unreadCount: number;
 }) {
   const router = useRouter();
   const initials = user.name
@@ -35,6 +62,7 @@ export function Header({
       <div className="flex-1" />
       <div className="flex items-center gap-2">
         <ThemeToggle />
+        <NotificationBell notifications={notifications} unreadCount={unreadCount} />
         <DropdownMenu>
           <DropdownMenuTrigger
             render={<Button variant="ghost" size="icon" className="rounded-full" />}

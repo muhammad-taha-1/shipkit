@@ -11,6 +11,8 @@ import { type MemberRole } from "@/generated/prisma/client";
 import { sendEmail } from "@/modules/notifications/send";
 import InviteMember from "../../../emails/invite-member";
 import { createAuditLog } from "@/modules/audit/log";
+import { createNotification } from "@/modules/notifications/create";
+import { getOrgAdminsAndOwners } from "@/modules/notifications/recipients";
 
 async function requireMemberWithPermission(
   orgId: string,
@@ -104,6 +106,33 @@ export async function inviteMember(orgId: string, formData: FormData) {
     metadata: { email: parsed.data.email, role: parsed.data.role },
   });
 
+  const adminIds = await getOrgAdminsAndOwners(orgId);
+  await createNotification({
+    type: "MEMBER_INVITED",
+    title: "New member invited",
+    body: `${user.name ?? user.email} invited ${parsed.data.email} as ${parsed.data.role}`,
+    link: "/settings/members",
+    actorId: user.id,
+    recipientIds: adminIds,
+    organizationId: orgId,
+  });
+
+  const invitee = await db.user.findUnique({
+    where: { email: parsed.data.email },
+    select: { id: true },
+  });
+  if (invitee) {
+    await createNotification({
+      type: "MEMBER_INVITED",
+      title: `You've been invited to ${org.name}`,
+      body: `${user.name ?? user.email} invited you to join as ${parsed.data.role}`,
+      link: `/accept-invite?token=${token}`,
+      actorId: user.id,
+      recipientIds: [invitee.id],
+      organizationId: orgId,
+    });
+  }
+
   return { success: true };
 }
 
@@ -145,6 +174,17 @@ export async function acceptInvitation(token: string) {
     metadata: { role: invitation.role },
   });
 
+  const adminIds = await getOrgAdminsAndOwners(invitation.organizationId);
+  await createNotification({
+    type: "MEMBER_JOINED",
+    title: "New member joined",
+    body: `${user.name ?? user.email} joined as ${invitation.role}`,
+    link: "/settings/members",
+    actorId: user.id,
+    recipientIds: adminIds,
+    organizationId: invitation.organizationId,
+  });
+
   return { success: true, orgId: invitation.organizationId };
 }
 
@@ -178,6 +218,19 @@ export async function removeMember(orgId: string, targetUserId: string) {
     entityId: targetUserId,
     organizationId: orgId,
     userId: user.id,
+  });
+
+  const org = await db.organization.findUniqueOrThrow({
+    where: { id: orgId },
+    select: { name: true },
+  });
+  await createNotification({
+    type: "MEMBER_REMOVED",
+    title: `You were removed from ${org.name}`,
+    body: `${user.name ?? user.email} removed you from the organization`,
+    actorId: user.id,
+    recipientIds: [targetUserId],
+    organizationId: orgId,
   });
 
   return { success: true };
@@ -217,6 +270,16 @@ export async function changeRole(orgId: string, targetUserId: string, newRole: M
     metadata: { newRole, previousRole: targetMember.role },
   });
 
+  await createNotification({
+    type: "MEMBER_ROLE_CHANGED",
+    title: "Your role was changed",
+    body: `${user.name ?? user.email} changed your role from ${targetMember.role} to ${newRole}`,
+    link: "/settings/members",
+    actorId: user.id,
+    recipientIds: [targetUserId],
+    organizationId: orgId,
+  });
+
   return { success: true };
 }
 
@@ -247,6 +310,17 @@ export async function revokeInvitation(invitationId: string, orgId: string) {
     entityId: invitationId,
     organizationId: orgId,
     userId: user.id,
+  });
+
+  const adminIds = await getOrgAdminsAndOwners(orgId);
+  await createNotification({
+    type: "INVITATION_REVOKED",
+    title: "Invitation revoked",
+    body: `${user.name ?? user.email} revoked the invitation for ${invitation.email}`,
+    link: "/settings/members",
+    actorId: user.id,
+    recipientIds: adminIds,
+    organizationId: orgId,
   });
 
   return { success: true };

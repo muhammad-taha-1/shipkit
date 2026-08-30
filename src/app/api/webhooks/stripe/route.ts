@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import type Stripe from "stripe";
 import { type PlanType, type SubscriptionStatus } from "@/generated/prisma/client";
 import { createAuditLog } from "@/modules/audit/log";
+import { createNotification } from "@/modules/notifications/create";
+import { getOrgAdminsAndOwners, getOrgOwners } from "@/modules/notifications/recipients";
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -109,6 +111,17 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     userId: session.metadata?.userId ?? undefined,
     metadata: { plan },
   });
+
+  const adminIds = await getOrgAdminsAndOwners(orgId);
+  await createNotification({
+    type: "BILLING_SUBSCRIPTION_CREATED",
+    title: "Subscription activated",
+    body: `Your ${plan} plan is now active`,
+    link: "/billing",
+    actorId: session.metadata?.userId ?? undefined,
+    recipientIds: adminIds,
+    organizationId: orgId,
+  });
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
@@ -132,6 +145,16 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     organizationId: orgId,
     metadata: { status: subscription.status },
   });
+
+  const adminIds = await getOrgAdminsAndOwners(orgId);
+  await createNotification({
+    type: "BILLING_SUBSCRIPTION_UPDATED",
+    title: "Subscription updated",
+    body: `Your subscription status is now ${subscription.status}`,
+    link: "/billing",
+    recipientIds: adminIds,
+    organizationId: orgId,
+  });
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
@@ -153,6 +176,16 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     entityId: subscription.id,
     organizationId: orgId,
     metadata: { previousPlan: subscription.items.data[0]?.price.id ?? null },
+  });
+
+  const adminIds = await getOrgAdminsAndOwners(orgId);
+  await createNotification({
+    type: "BILLING_SUBSCRIPTION_DELETED",
+    title: "Subscription ended",
+    body: "Your subscription has been permanently deleted. You are now on the Free plan.",
+    link: "/billing",
+    recipientIds: adminIds,
+    organizationId: orgId,
   });
 }
 
@@ -189,5 +222,15 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   await db.organization.update({
     where: { id: org.id },
     data: { subscriptionStatus: "PAST_DUE" },
+  });
+
+  const ownerIds = await getOrgOwners(org.id);
+  await createNotification({
+    type: "INVOICE_PAYMENT_FAILED",
+    title: "Payment failed",
+    body: "Your latest invoice payment failed. Please update your payment method to avoid service interruption.",
+    link: "/billing",
+    recipientIds: ownerIds,
+    organizationId: org.id,
   });
 }

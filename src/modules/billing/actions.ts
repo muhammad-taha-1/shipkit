@@ -5,6 +5,8 @@ import { stripe } from "./stripe";
 import { requireOrgRole } from "@/modules/auth/guards";
 import { redirect } from "next/navigation";
 import { createAuditLog } from "@/modules/audit/log";
+import { createNotification } from "@/modules/notifications/create";
+import { getOrgAdminsAndOwners } from "@/modules/notifications/recipients";
 import { AppError } from "@/lib/errors";
 
 async function getOrCreateStripeCustomer(orgId: string) {
@@ -121,6 +123,17 @@ export async function cancelSubscription(orgId: string) {
       userId: user.id,
     });
 
+    const adminIds = await getOrgAdminsAndOwners(orgId);
+    await createNotification({
+      type: "BILLING_SUBSCRIPTION_CANCELED",
+      title: "Subscription canceled",
+      body: `${user.name ?? user.email} canceled the subscription. It will remain active until the end of the billing period.`,
+      link: "/billing",
+      actorId: user.id,
+      recipientIds: adminIds,
+      organizationId: orgId,
+    });
+
     return { success: true };
   } catch (error) {
     if (error instanceof AppError) {
@@ -151,6 +164,17 @@ export async function resumeSubscription(orgId: string) {
       entityType: "subscription",
       organizationId: orgId,
       userId: user.id,
+    });
+
+    const adminIds = await getOrgAdminsAndOwners(orgId);
+    await createNotification({
+      type: "BILLING_SUBSCRIPTION_RESUMED",
+      title: "Subscription resumed",
+      body: `${user.name ?? user.email} resumed the subscription`,
+      link: "/billing",
+      actorId: user.id,
+      recipientIds: adminIds,
+      organizationId: orgId,
     });
 
     return { success: true };

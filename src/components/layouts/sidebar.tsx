@@ -13,17 +13,20 @@ import {
   Key,
   User,
   FileText,
+  Bell,
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/activity", label: "Activity", icon: Activity },
+  { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/files", label: "Files", icon: FileText },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/settings/profile", label: "Profile", icon: User },
   { href: "/settings/members", label: "Members", icon: Users },
   { href: "/settings/api-keys", label: "API Keys", icon: Key },
+  { href: "/settings/notifications", label: "Notifications", icon: Bell },
 ];
 
 type Org = {
@@ -36,9 +39,11 @@ type Org = {
 export function Sidebar({
   orgs,
   activeOrgId,
+  unreadNotificationCount = 0,
 }: {
   orgs: Org[];
   activeOrgId: string | null;
+  unreadNotificationCount?: number;
 }) {
   const pathname = usePathname();
 
@@ -66,6 +71,11 @@ export function Sidebar({
             >
               <item.icon className="h-4 w-4" />
               {item.label}
+              {item.href === "/notifications" && unreadNotificationCount > 0 && (
+                <span className="ml-auto rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-medium text-destructive-foreground">
+                  {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
+                </span>
+              )}
             </Link>
           );
         })}
