@@ -23,7 +23,9 @@ export type AuditAction =
   | "user.avatar_updated"
   | "org.logo_updated"
   | "file.uploaded"
-  | "file.deleted";
+  | "file.deleted"
+  | "admin.user_role_changed"
+  | "admin.org_plan_changed";
 
 export async function createAuditLog({
   action,

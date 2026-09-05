@@ -14,6 +14,7 @@ import {
   User,
   FileText,
   Bell,
+  Shield,
 } from "lucide-react";
 
 const navItems = [
@@ -40,10 +41,12 @@ export function Sidebar({
   orgs,
   activeOrgId,
   unreadNotificationCount = 0,
+  userRole,
 }: {
   orgs: Org[];
   activeOrgId: string | null;
   unreadNotificationCount?: number;
+  userRole?: string;
 }) {
   const pathname = usePathname();
 
@@ -79,6 +82,23 @@ export function Sidebar({
             </Link>
           );
         })}
+        {userRole === "SUPER_ADMIN" && (
+          <>
+            <div className="my-2 border-t" />
+            <Link
+              href="/admin"
+              className={cn(
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                pathname.startsWith("/admin")
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+              )}
+            >
+              <Shield className="h-4 w-4" />
+              Admin Panel
+            </Link>
+          </>
+        )}
       </nav>
     </aside>
   );

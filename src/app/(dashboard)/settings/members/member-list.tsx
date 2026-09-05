@@ -126,7 +126,7 @@ export function MemberList({
                     </Badge>
                   ) : (
                     <Select
-                      defaultValue={member.role}
+                      value={member.role}
                       onValueChange={(v) => { if (v) handleRoleChange(member.user.id, v); }}
                     >
                       <SelectTrigger className="w-28">

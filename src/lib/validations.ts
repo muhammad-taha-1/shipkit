@@ -85,3 +85,13 @@ export const createApiKeySchema = z.object({
 export const deleteFileSchema = z.object({
   fileId: z.string().min(1, "File ID is required"),
 });
+
+export const changeUserRoleSchema = z.object({
+  userId: z.string().min(1, "User ID is required"),
+  newRole: z.enum(["USER", "SUPER_ADMIN"]),
+});
+
+export const changeOrgPlanSchema = z.object({
+  orgId: z.string().min(1, "Organization ID is required"),
+  newPlan: z.enum(["FREE", "PRO", "ENTERPRISE"]),
+});

@@ -37,7 +37,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex h-screen">
-      <Sidebar orgs={orgs} activeOrgId={activeOrgId} unreadNotificationCount={unreadCount} />
+      <Sidebar orgs={orgs} activeOrgId={activeOrgId} unreadNotificationCount={unreadCount} userRole={user.role} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header
           user={{ name: user.name, email: user.email, image: user.image }}
