@@ -55,11 +55,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     ...authConfig.callbacks,
     async signIn({ user, account }) {
-      if (account?.provider === "credentials") {
-        if (process.env.SKIP_EMAIL_VERIFICATION !== "true") {
-          const dbUser = await db.user.findUnique({
-            where: { id: user.id },
-          });
+      if (user.id) {
+        const dbUser = await db.user.findUnique({
+          where: { id: user.id },
+          select: { emailVerified: true, bannedAt: true },
+        });
+
+        if (dbUser?.bannedAt) {
+          throw new Error("ACCOUNT_BANNED");
+        }
+
+        if (
+          account?.provider === "credentials" &&
+          process.env.SKIP_EMAIL_VERIFICATION !== "true"
+        ) {
           if (dbUser && !dbUser.emailVerified) {
             throw new Error("EMAIL_NOT_VERIFIED");
           }
@@ -74,11 +83,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       const dbUser = await db.user.findUnique({
         where: { id: token.id as string },
-        select: { image: true, role: true },
+        select: { image: true, role: true, bannedAt: true },
       });
       if (dbUser) {
         token.image = dbUser.image;
         token.role = dbUser.role;
+        token.bannedAt = dbUser.bannedAt?.toISOString() ?? null;
       }
       return token;
     },

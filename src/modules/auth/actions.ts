@@ -119,6 +119,9 @@ export async function loginAction(formData: FormData) {
       redirectTo: "/dashboard",
     });
   } catch (error) {
+    if (error instanceof Error && error.message === "ACCOUNT_BANNED") {
+      return { success: false as const, error: "Your account has been suspended. Please contact support for more information." };
+    }
     if (error instanceof Error && error.message === "EMAIL_NOT_VERIFIED") {
       return { success: false as const, error: "Please verify your email before signing in. Check your inbox for the verification link." };
     }

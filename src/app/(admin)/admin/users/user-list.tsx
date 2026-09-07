@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { changeUserRole } from "@/modules/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +25,7 @@ import {
 } from "@/components/ui/table";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
-import { Search } from "lucide-react";
+import { Search, Ban } from "lucide-react";
 
 type UserItem = {
   id: string;
@@ -32,6 +33,7 @@ type UserItem = {
   email: string;
   image: string | null;
   role: string;
+  bannedAt: Date | null;
   emailVerified: Date | null;
   createdAt: Date;
   _count: { memberships: number };
@@ -120,7 +122,7 @@ export function UserList({
               <TableRow>
                 <TableHead>User</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead>Verified</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Orgs</TableHead>
                 <TableHead className="text-right">Joined</TableHead>
               </TableRow>
@@ -135,7 +137,10 @@ export function UserList({
                 return (
                   <TableRow key={user.id}>
                     <TableCell>
-                      <div className="flex items-center gap-3">
+                      <Link
+                        href={`/admin/users/${user.id}`}
+                        className="flex items-center gap-3 hover:opacity-80"
+                      >
                         <Avatar className="h-8 w-8">
                           {user.image && (
                             <AvatarImage src={user.image} alt={user.name ?? "Avatar"} />
@@ -143,7 +148,7 @@ export function UserList({
                           <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm font-medium">
+                          <p className="text-sm font-medium hover:underline">
                             {user.name ?? "Unnamed"}
                             {isCurrentUser && (
                               <span className="ml-1 text-muted-foreground">(you)</span>
@@ -151,7 +156,7 @@ export function UserList({
                           </p>
                           <p className="text-xs text-muted-foreground">{user.email}</p>
                         </div>
-                      </div>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       {isCurrentUser ? (
@@ -180,9 +185,17 @@ export function UserList({
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.emailVerified ? "default" : "destructive"}>
-                        {user.emailVerified ? "Yes" : "No"}
-                      </Badge>
+                      <div className="flex flex-wrap gap-1">
+                        <Badge variant={user.emailVerified ? "default" : "destructive"}>
+                          {user.emailVerified ? "Verified" : "Unverified"}
+                        </Badge>
+                        {user.bannedAt && (
+                          <Badge variant="destructive">
+                            <Ban className="mr-1 h-3 w-3" />
+                            Banned
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>{user._count.memberships}</TableCell>
                     <TableCell className="text-right text-muted-foreground">

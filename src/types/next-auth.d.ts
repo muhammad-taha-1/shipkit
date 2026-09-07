@@ -13,6 +13,7 @@ declare module "next-auth" {
       email: string;
       image: string | null;
       role: GlobalRole;
+      bannedAt: string | null;
     };
   }
 }
@@ -22,5 +23,6 @@ declare module "next-auth/jwt" {
     id: string;
     role: GlobalRole;
     image: string | null;
+    bannedAt: string | null;
   }
 }

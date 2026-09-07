@@ -21,6 +21,7 @@ type ConfirmDialogProps = {
   cancelLabel?: string;
   variant?: "destructive" | "default";
   onConfirm: () => void | Promise<void>;
+  children?: React.ReactNode;
 };
 
 export function ConfirmDialog({
@@ -32,6 +33,7 @@ export function ConfirmDialog({
   cancelLabel = "Cancel",
   variant = "destructive",
   onConfirm,
+  children,
 }: ConfirmDialogProps) {
   const [isPending, setIsPending] = useState(false);
 
@@ -52,6 +54,7 @@ export function ConfirmDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+        {children}
         <DialogFooter>
           <Button
             variant="outline"

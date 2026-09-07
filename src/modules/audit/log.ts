@@ -25,7 +25,13 @@ export type AuditAction =
   | "file.uploaded"
   | "file.deleted"
   | "admin.user_role_changed"
-  | "admin.org_plan_changed";
+  | "admin.org_plan_changed"
+  | "admin.user_banned"
+  | "admin.user_unbanned"
+  | "admin.user_deleted"
+  | "admin.org_deleted"
+  | "admin.impersonation_started"
+  | "admin.impersonation_stopped";
 
 export async function createAuditLog({
   action,

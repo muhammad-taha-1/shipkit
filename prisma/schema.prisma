@@ -19,6 +19,8 @@ model User {
   image           String?
   passwordHash    String?
   role            GlobalRole @default(USER)
+  bannedAt        DateTime?
+  bannedReason    String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

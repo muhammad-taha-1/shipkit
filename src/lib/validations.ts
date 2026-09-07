@@ -95,3 +95,20 @@ export const changeOrgPlanSchema = z.object({
   orgId: z.string().min(1, "Organization ID is required"),
   newPlan: z.enum(["FREE", "PRO", "ENTERPRISE"]),
 });
+
+export const banUserSchema = z.object({
+  userId: z.string().min(1, "User ID is required"),
+  reason: z.string().max(500).optional(),
+});
+
+export const adminDeleteUserSchema = z.object({
+  userId: z.string().min(1, "User ID is required"),
+});
+
+export const adminDeleteOrgSchema = z.object({
+  orgId: z.string().min(1, "Organization ID is required"),
+});
+
+export const impersonateUserSchema = z.object({
+  userId: z.string().min(1, "User ID is required"),
+});

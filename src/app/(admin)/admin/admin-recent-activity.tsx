@@ -59,6 +59,12 @@ const actionConfig: Record<
   "apikey.revoked": { icon: Key, label: "revoked an API key", color: "text-red-500" },
   "admin.user_role_changed": { icon: ShieldCheck, label: "changed a user's role", color: "text-yellow-500" },
   "admin.org_plan_changed": { icon: CreditCard, label: "changed an org's plan", color: "text-purple-500" },
+  "admin.user_banned": { icon: UserMinus, label: "banned a user", color: "text-red-500" },
+  "admin.user_unbanned": { icon: UserPlus, label: "unbanned a user", color: "text-green-500" },
+  "admin.user_deleted": { icon: UserMinus, label: "deleted a user", color: "text-red-500" },
+  "admin.org_deleted": { icon: Building2, label: "deleted an organization", color: "text-red-500" },
+  "admin.impersonation_started": { icon: ShieldCheck, label: "started impersonating a user", color: "text-orange-500" },
+  "admin.impersonation_stopped": { icon: ShieldCheck, label: "stopped impersonating a user", color: "text-gray-500" },
 };
 
 function getRelativeTime(date: Date): string {

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { changeOrgPlan } from "@/modules/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -140,10 +141,17 @@ export function OrgList({
               {orgs.map((org) => (
                 <TableRow key={org.id}>
                   <TableCell>
-                    <div>
-                      <p className="text-sm font-medium">{org.name}</p>
-                      <p className="text-xs text-muted-foreground">{org.slug}</p>
-                    </div>
+                    <Link
+                      href={`/admin/organizations/${org.id}`}
+                      className="block hover:opacity-80"
+                    >
+                      <p className="text-sm font-medium hover:underline">
+                        {org.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {org.slug}
+                      </p>
+                    </Link>
                   </TableCell>
                   <TableCell>
                     <Select

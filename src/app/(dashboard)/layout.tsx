@@ -8,6 +8,7 @@ import {
 } from "@/modules/notifications/queries";
 import { Sidebar } from "@/components/layouts/sidebar";
 import { Header } from "@/components/layouts/header";
+import { ImpersonationBanner } from "@/components/admin/impersonation-banner";
 
 export default async function DashboardLayout({
   children,
@@ -36,15 +37,20 @@ export default async function DashboardLayout({
   ]);
 
   return (
-    <div className="flex h-screen">
-      <Sidebar orgs={orgs} activeOrgId={activeOrgId} unreadNotificationCount={unreadCount} userRole={user.role} />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header
-          user={{ name: user.name, email: user.email, image: user.image }}
-          notifications={recentNotifications}
-          unreadCount={unreadCount}
-        />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+    <div className="flex h-screen flex-col">
+      {user.isImpersonating && (
+        <ImpersonationBanner userName={user.name} userEmail={user.email} />
+      )}
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar orgs={orgs} activeOrgId={activeOrgId} unreadNotificationCount={unreadCount} userRole={user.role} />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <Header
+            user={{ name: user.name, email: user.email, image: user.image }}
+            notifications={recentNotifications}
+            unreadCount={unreadCount}
+          />
+          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        </div>
       </div>
     </div>
   );
