@@ -8,6 +8,7 @@ import { inviteMemberSchema } from "@/lib/validations";
 import { INVITATION_EXPIRY_DAYS } from "@/lib/constants";
 import { checkMemberLimit } from "@/modules/billing/limits";
 import { type MemberRole } from "@/generated/prisma/client";
+import { inngest } from "@/lib/inngest";
 import { sendEmail } from "@/modules/notifications/send";
 import InviteMember from "../../../emails/invite-member";
 import { createAuditLog } from "@/modules/audit/log";
@@ -87,16 +88,28 @@ export async function inviteMember(orgId: string, formData: FormData) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
   const acceptUrl = `${appUrl}/accept-invite?token=${token}`;
 
-  await sendEmail({
+  const emailPayload = {
     to: parsed.data.email,
-    subject: `You've been invited to join ${org.name} — ShipKit`,
-    react: InviteMember({
-      inviterName: inviter.name ?? inviter.email,
-      orgName: org.name,
-      role: parsed.data.role,
-      acceptUrl,
-    }),
-  });
+    inviterName: inviter.name ?? inviter.email,
+    orgName: org.name,
+    role: parsed.data.role,
+    acceptUrl,
+  };
+
+  try {
+    await inngest.send({ name: "email/invitation.send", data: emailPayload });
+  } catch {
+    await sendEmail({
+      to: emailPayload.to,
+      subject: `You've been invited to join ${org.name} — ShipKit`,
+      react: InviteMember({
+        inviterName: emailPayload.inviterName,
+        orgName: emailPayload.orgName,
+        role: emailPayload.role,
+        acceptUrl: emailPayload.acceptUrl,
+      }),
+    });
+  }
 
   await createAuditLog({
     action: "member.invited",

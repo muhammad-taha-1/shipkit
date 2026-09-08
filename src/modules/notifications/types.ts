@@ -110,6 +110,15 @@ export const notificationConfig: Record<NotificationType, NotificationConfig> = 
     label: "Subscription ended",
     category: "billing",
   },
+  BILLING_TRIAL_ENDING: {
+    icon: CreditCard,
+    color: "text-yellow-500",
+    defaultTitle: "Trial ending soon",
+    defaultInApp: true,
+    defaultEmail: true,
+    label: "Trial ending",
+    category: "billing",
+  },
   INVOICE_PAYMENT_FAILED: {
     icon: AlertTriangle,
     color: "text-red-500",

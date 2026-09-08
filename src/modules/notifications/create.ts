@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { type NotificationType } from "@/generated/prisma/client";
 import { notificationConfig } from "./types";
+import { inngest } from "@/lib/inngest";
 import { sendEmail } from "./send";
 import NotificationEmail from "../../../emails/notification";
 
@@ -67,22 +68,37 @@ export async function createNotification({
       select: { id: true, email: true, name: true },
     });
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const fullLink = link ? `${appUrl}${link}` : undefined;
+    const events = recipients.map((recipient) => ({
+      name: "email/notification.send" as const,
+      data: {
+        to: recipient.email,
+        recipientName: recipient.name,
+        title,
+        body,
+        link,
+      },
+    }));
 
-    await Promise.allSettled(
-      recipients.map((recipient) =>
-        sendEmail({
-          to: recipient.email,
-          subject: title,
-          react: NotificationEmail({
-            title,
-            body,
-            link: fullLink,
-            recipientName: recipient.name,
+    try {
+      await inngest.send(events);
+    } catch {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const fullLink = link ? `${appUrl}${link}` : undefined;
+
+      await Promise.allSettled(
+        recipients.map((recipient) =>
+          sendEmail({
+            to: recipient.email,
+            subject: title,
+            react: NotificationEmail({
+              title,
+              body,
+              link: fullLink,
+              recipientName: recipient.name,
+            }),
           }),
-        }),
-      ),
-    );
+        ),
+      );
+    }
   }
 }
